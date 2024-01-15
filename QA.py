@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from PIL import Image
+
 
 def uniform_cross_dissolve(f, g, t):
     if f.shape != g.shape:
@@ -71,6 +71,7 @@ def contrast_stretching(f, smin, smax):
 
     return s.astype(x)
 
+
 # testar mais
 def thresholding(f, k):
     row, col, _ = f.shape
@@ -88,9 +89,9 @@ def thresholding(f, k):
 
     return s.astype(x)
 
-# precisa ser um valor alto
-def power_transformation(f,c,y):
 
+# precisa ser um valor alto
+def power_transformation(f, c, y):
     row, col, _ = f.shape
 
     x = f.dtype
@@ -103,9 +104,9 @@ def power_transformation(f,c,y):
 
     return s.astype(x)
 
+
 # precisa ser um valor alto
 def logarithmic_transformation(f, c):
-
     row, col, _ = f.shape
 
     x = f.dtype
@@ -118,8 +119,8 @@ def logarithmic_transformation(f, c):
 
     return s.astype(x)
 
-def histogram_expansion(f):
 
+def histogram_expansion(f):
     row, col, _ = f.shape
 
     min_val = np.min(f)
@@ -131,6 +132,7 @@ def histogram_expansion(f):
             s[i][j] = np.round(((f[i][j] - min_val) / (max_val - min_val)) * 255)
 
     return s
+
 
 #  equalizacao(f):
 
@@ -162,5 +164,57 @@ def contrast_control(f, c, v):
                 s[i][j] = mean + (c / deviation) * (f[i][j] - mean)
             else:
                 s[i][j] = f[i][j]
+
+    return s.astype(x)
+
+
+def rotation(f, angle):
+    angle = np.deg2rad(angle)  # Converte o angulo de graus para radianos, obg andrey
+
+    row, col, _ = f.shape
+
+    ic, jc = row // 2, col // 2
+
+    x = f.dtype
+    f = f.astype(np.float32)
+    s = np.zeros_like(f)
+
+    for i in range(row):
+        for j in range(col):
+            il = round(((i - ic) * np.cos(angle)) - ((j - jc) * np.sin(angle)) + ic)
+            jl = round(((i - ic) * np.sin(angle)) + ((j - jc) * np.cos(angle)) + jc)
+
+            if row - 1 >= il >= 0 and col - 1 >= jl >= 0:
+                s[il][jl] = f[i][j]
+
+    # interpolacao pra tirar os ruidos
+    for i in range(1, row - 1):
+        for j in range(1, col - 1):
+            if (s[i][j] == [0, 0, 0]).all():
+                s[i][j] = (s[i - 1][j - 1] + s[i - 1][j + 1] + s[i + 1][j - 1] + s[i + 1][j + 1]) / 4
+
+    return s.astype(x)
+
+
+def rebound(f, direction):
+    row, col, _ = f.shape
+
+    x = f.dtype
+    f = f.astype(np.float32)
+    s = np.zeros_like(f)
+
+    for i in range(row):
+        for j in range(col):
+
+            # gira pra esquerda
+            if direction == 1:
+                s[i][j] = f[j][i]
+
+            # gira pra direita
+            elif direction == 2:
+                s[i][j] = f[row - 1 - j][i]
+            else:
+                print("Invalid direction")
+                exit()
 
     return s.astype(x)
