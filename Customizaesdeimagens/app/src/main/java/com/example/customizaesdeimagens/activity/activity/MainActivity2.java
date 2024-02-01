@@ -1,8 +1,5 @@
 package com.example.customizaesdeimagens.activity.activity;
 
-import static com.example.customizaesdeimagens.activity.model.Funcoes.getFuncoesParametro;
-import static com.example.customizaesdeimagens.activity.model.Funcoes.processarImagemSelecionada;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -25,6 +22,7 @@ public class MainActivity2 extends AppCompatActivity {
 
     private ImageView imageView;
     private static final int PICK_IMAGE_REQUEST = 1;
+    private Funcoes funcoes;  // Adicione esta linha
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -36,6 +34,13 @@ public class MainActivity2 extends AppCompatActivity {
         Button btnSelectImage = findViewById(R.id.btnSelectImage);
         Button btnProcessImage = findViewById(R.id.btnProcessImage);
 
+        Intent intent = getIntent();
+        if (intent != null) {
+            int position = intent.getIntExtra("POSITION", -1);
+            if (position != -1) {
+                funcoes = new Funcoes("titulo", position);
+            }
+        }
         // Botão para selecionar a imagem da galeria
         btnSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,7 +55,7 @@ public class MainActivity2 extends AppCompatActivity {
             public void onClick(View v) {
                 // Obtenha o bitmap da imagem exibida no ImageView
                 Bitmap imagemBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-                processarImagemSelecionada(imagemBitmap);
+                funcoes.processarImagemSelecionada(imagemBitmap);  // Alteração nesta linha
             }
         });
     }

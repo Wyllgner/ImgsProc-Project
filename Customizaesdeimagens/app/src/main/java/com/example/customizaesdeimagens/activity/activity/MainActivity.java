@@ -86,8 +86,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                 // Converter o URI em Bitmap
                 Bitmap imagemBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);
 
-                // Chamar o método para processar a imagem selecionada
-                Funcoes.processarImagemSelecionada(imagemBitmap);
+                // Criar uma instância de Funcoes e chamar o método para processar a imagem selecionada
+                Funcoes funcoes = new Funcoes();
+                funcoes.processarImagemSelecionada(imagemBitmap);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         Funcoes funcao = new Funcoes("Filtro médio", 0);
         this.listaFuncoes.add(funcao);
 
-        funcao = new Funcoes("Filtragem", 1);
+        funcao = new Funcoes("High Boost", 1);
         this.listaFuncoes.add(funcao);
 
         funcao = new Funcoes("Controle de contraste", 2);
@@ -115,10 +116,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         funcao = new Funcoes("Transformação logarítmica", 5);
         this.listaFuncoes.add(funcao);
 
-        funcao = new Funcoes("Filtro mediano", 6);
+        funcao = new Funcoes("Filtro de mediana", 6);
         this.listaFuncoes.add(funcao);
 
-        funcao = new Funcoes("Filtragem", 7);
+        funcao = new Funcoes("Cisalhamento", 7);
         this.listaFuncoes.add(funcao);
 
         funcao = new Funcoes("Negativo", 8);
@@ -148,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         funcao = new Funcoes("Zoom na imagem", 16);
         this.listaFuncoes.add(funcao);
 
-        funcao = new Funcoes("Zoom fora da imagem", 17);
+        funcao = new Funcoes("Zoom out na imagem", 17);
         this.listaFuncoes.add(funcao);
     }
 
@@ -156,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     @Override
     public void onItemClick(int position) {
         Intent intent = new Intent(MainActivity.this, MainActivity2.class);
-        intent.putExtra("NAME", listaFuncoes.get(position).getTituloFuncao());
+        intent.putExtra("POSITION", position);
         startActivity(intent);
 
     }
