@@ -22,7 +22,7 @@ public class MainActivity2 extends AppCompatActivity {
 
     private ImageView imageView;
     private static final int PICK_IMAGE_REQUEST = 1;
-    private Funcoes funcoes;  // Adicione esta linha
+    private Funcoes funcoes;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -41,7 +41,6 @@ public class MainActivity2 extends AppCompatActivity {
                 funcoes = new Funcoes("titulo", position);
             }
         }
-        // Botão para selecionar a imagem da galeria
         btnSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -49,7 +48,6 @@ public class MainActivity2 extends AppCompatActivity {
             }
         });
 
-        // Botão para processar a imagem
         btnProcessImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -60,23 +58,20 @@ public class MainActivity2 extends AppCompatActivity {
         });
     }
 
-    // Método para abrir a galeria
     private void abrirGaleria() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
 
-    // Método chamado quando a imagem é selecionada da galeria
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            // Obter o URI da imagem selecionada
             try {
                 Bitmap imagemBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
-                // Exibir a imagem selecionada
+                // Exibir
                 imageView.setImageBitmap(imagemBitmap);
             } catch (IOException e) {
                 e.printStackTrace();

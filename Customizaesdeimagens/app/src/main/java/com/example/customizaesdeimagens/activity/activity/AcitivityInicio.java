@@ -16,15 +16,11 @@ public class AcitivityInicio extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inicio);
-
-        // Localize os botões pelos IDs
         Button testarButton = findViewById(R.id.Testar);
 
-        // Defina os ouvintes de clique para os botões
         testarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Ao clicar no botão "Testar", inicie a MainActivity1
                 Intent intent = new Intent(AcitivityInicio.this, MainActivity.class);
                 startActivity(intent);
             }
