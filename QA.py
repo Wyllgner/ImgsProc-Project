@@ -218,3 +218,91 @@ def rebound(f, direction):
                 exit()
 
     return s.astype(x)
+
+
+# t -> entre 0 e 255
+def sobel_edge_detection(f, t):
+
+    f = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
+    row, col = f.shape
+
+    x = f.dtype
+    f = f.astype(np.float32)
+    s = np.zeros_like(f)
+
+    Mx = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]
+    My = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]]
+
+    for i in range(1, row - 1):
+        for j in range(1, col - 1):
+            submatrix = f[i - 1:i + 2, j - 1:j + 2]
+
+            Gx = 0
+            Gy = 0
+
+            for k in range(3):
+                for h in range(3):
+                    Gx += Mx[k][h] * submatrix[k, h]
+                    Gy += My[k][h] * submatrix[k, h]
+
+            s[i, j] = np.sqrt(Gx ** 2 + Gy ** 2)
+
+    result = np.maximum(s, t)
+
+    for i in range(row):
+        for j in range(col):
+            if result[i, j] == t:
+                result[i, j] = 0
+
+    return result.astype(x)
+
+def zoom_in_image(f, zoom_factor):
+
+    row, col, ch = f.shape
+
+    new_row = int(row * zoom_factor)
+    new_col = int(col * zoom_factor)
+
+    x = f.dtype
+    f = f.astype(np.float32)
+    s = np.zeros((new_row, new_col, ch), dtype=f.dtype)
+
+    for i in range(new_row):
+        for j in range(new_col):
+
+            original_row = int(i / zoom_factor)
+            original_col = int(j / zoom_factor)
+
+            original_row = min(original_row, row - 1)
+            original_col = min(original_col, col - 1)
+
+            s[i, j] = f[original_row, original_col]
+
+    return s.astype(x)
+
+def zoom_out_image(f, zoom_factor):
+
+    row, col, ch = f.shape
+
+    new_row = int(row / zoom_factor)
+    new_col = int(col / zoom_factor)
+
+    x = f.dtype
+    f = f.astype(np.float32)
+    s = np.zeros((new_row, new_col, ch), dtype=f.dtype)
+
+    for i in range(new_row):
+        for j in range(new_col):
+
+            original_row = int(i * zoom_factor)
+            original_col = int(j * zoom_factor)
+
+            original_row = min(original_row, row - 1)
+            original_col = min(original_col, col - 1)
+
+            s[i, j] = f[original_row, original_col]
+
+    return s.astype(x)
+
+
+
