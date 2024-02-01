@@ -1,18 +1,20 @@
 import numpy as np
+import cv2
 
 # testar mais
 def thresholding(f, k):
-    row, col, _ = f.shape
+    f = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
+    row, col = f.shape
 
-    x = f.dtype
-    s = f.copy()
-    s = s.astype(np.float32)
+    type_img = f.dtype
+    output = f.copy()
+    output = output.astype(np.float32)
 
     for i in range(row):
         for j in range(col):
-            if (s[i][j] > k).any():
-                s[i][j] = 255
+            if (output[i][j] > k).any():
+                output[i][j] = 255
             else:
-                s[i][j] = 0
+                output[i][j] = 0
 
-    return s.astype(x)
+    return output.astype(type_img)

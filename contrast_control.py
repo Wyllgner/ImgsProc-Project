@@ -1,15 +1,17 @@
 import numpy as np
+import cv2
 
 def contrast_control(f, c, v):
     if c < 0:
         print("The intensity control must be a non-negative parameter")
         exit()
 
-    row, col, _ = f.shape
+    f = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
+    row, col = f.shape
 
-    x = f.dtype
+    type_img = f.dtype
     f = f.astype(np.float32)
-    s = np.zeros_like(f)
+    output = np.zeros_like(f)
 
     for i in range(1, row - 1):
         for j in range(1, col - 1):
@@ -25,8 +27,8 @@ def contrast_control(f, c, v):
             deviation = np.std(neighbors)
 
             if deviation != 0:
-                s[i][j] = mean + (c / deviation) * (f[i][j] - mean)
+                output[i][j] = mean + (c / deviation) * (f[i][j] - mean)
             else:
-                s[i][j] = f[i][j]
+                output[i][j] = f[i][j]
 
-    return s.astype(x)
+    return output.astype(type_img)

@@ -1,15 +1,17 @@
 import numpy as np
+import cv2
 
 # precisa ser um valor alto
 def logarithmic_transformation(f, c):
-    row, col, _ = f.shape
+    f = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
+    row, col = f.shape
 
-    x = f.dtype
+    type_img = f.dtype
     f = f.astype(np.float32)
-    s = np.zeros_like(f)
+    output = np.zeros_like(f)
 
     for i in range(row):
         for j in range(col):
-            s[i][j] = c * np.log1p(f[i][j])
+            output[i][j] = c * np.log1p(f[i][j])
 
-    return s.astype(x)
+    return output.astype(type_img)

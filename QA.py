@@ -2,25 +2,28 @@ import cv2
 import numpy as np
 
 
-def uniform_cross_dissolve(f, g, t):
+def uniform_cross_dissolve(f, g, factor):
+
     if f.shape != g.shape:
         print("Images must have the same size")
         exit()
 
-    row, col, _ = f.shape
-    x = f.dtype
+    f = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
+    g = cv2.cvtColor(g, cv2.COLOR_BGR2GRAY)
+
+    row, col = f.shape
+    type_img = f.dtype
 
     f = f.astype(np.float32)
     g = g.astype(np.float32)
 
-    h = np.zeros_like(f)
+    output = np.zeros_like(f)
 
     for i in range(row):
         for j in range(col):
-            h[i][j] = (1 - t) * f[i][j] + t * g[i][j]
+            output[i][j] = (1 - factor) * f[i][j] + factor * g[i][j]
 
-    return h.astype(x)
-
+    return output.astype(type_img)
 
 def non_uniform_cross_dissolve(f, g, t):
     if f.shape != g.shape or f.shape != t.shape:
@@ -133,8 +136,29 @@ def histogram_expansion(f):
 
     return s
 
+def histogram_equalization(f):
+    bit_depth = f.dtype.itemsize * 8
 
-#  equalizacao(f):
+    L = np.power(2, bit_depth)
+
+    row, col = f.shape
+
+    hist_img = cv2.calcHist([f], [0], None, [256], [0, 256])
+
+    acsum = np.cumsum(hist_img)
+
+    eqh = np.zeros(L, dtype=hist_img.dtype)
+
+    result: np.ndarray = np.zeros((row, col), dtype=f.dtype)
+
+    for i in range(L):
+        eqh[i] = np.round(((L - 1) / (row * col)) * acsum[i])
+
+    for i in range(row):
+        for j in range(col):
+            result[i, j] = eqh[f[i, j]]
+
+    return result
 
 def contrast_control(f, c, v):
     if c < 0:
@@ -304,5 +328,65 @@ def zoom_out_image(f, zoom_factor):
 
     return s.astype(x)
 
+def shear(img, sy, sx):
 
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    row, col = img.shape
+
+    type_img = img.dtype
+    img = img.astype(np.float32)
+    result = np.zeros_like(img)
+
+    for i in range(row):
+        for j in range(col):
+            new_i = int(i + (j * sx))
+            new_j = int((i * sy) + j)
+            if 0 <= new_i < row and 0 <= new_j < col:
+                result[new_i][new_j] = img[i][j]
+
+    return result.astype(type_img)
+def smooth_image(img, kernel_size):
+    row, col = img.shape
+    smoothed_img = np.zeros_like(img)
+    k = kernel_size // 2
+
+    for i in range(k, row - k):
+        for j in range(k, col - k):
+            smoothed_img[i, j] = np.mean(img[i-k:i+k+1, j-k:j+k+1])
+
+    return smoothed_img
+
+def high_boost(img, k):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    row, col = img.shape
+
+    img_type = img.dtype
+    img = img.astype(np.float32)
+    result = np.zeros_like(img)
+    mask = np.zeros_like(img)
+
+    smoothed_img = smooth_image(img, 3)
+
+    for i in range(row):
+        for j in range(col):
+            mask[i][j] = img[i][j] - smoothed_img[i][j]
+
+            result[i][j] = img[i][j] + k * mask[i][j]
+
+    return result.astype(img_type)
+
+def convolution(img, kernel, offset):
+
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    row, col = img.shape
+
+    krow, kcol = kernel.shape
+
+    output: np.ndarray = np.zeros((row - krow + 1, col - kcol + 1), dtype=img.dtype)
+
+    for i in range(output.shape[0]):
+        for j in range(output.shape[1]):
+            output[i, j] = np.sum(img[i:i + krow, j:j + kcol] * kernel) + offset
+
+    return output
 

@@ -1,15 +1,17 @@
 import numpy as np
+import cv2
 
 def rotation(f, angle):
     angle = np.deg2rad(angle)  # Converte o angulo de graus para radianos, obg andrey
 
-    row, col, _ = f.shape
+    f = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
+    row, col = f.shape
 
     ic, jc = row // 2, col // 2
 
-    x = f.dtype
+    type_img = f.dtype
     f = f.astype(np.float32)
-    s = np.zeros_like(f)
+    output = np.zeros_like(f)
 
     for i in range(row):
         for j in range(col):
@@ -17,12 +19,12 @@ def rotation(f, angle):
             jl = round(((i - ic) * np.sin(angle)) + ((j - jc) * np.cos(angle)) + jc)
 
             if row - 1 >= il >= 0 and col - 1 >= jl >= 0:
-                s[il][jl] = f[i][j]
+                output[il][jl] = f[i][j]
 
     # interpolacao pra tirar os ruidos
     for i in range(1, row - 1):
         for j in range(1, col - 1):
-            if (s[i][j] == [0, 0, 0]).all():
-                s[i][j] = (s[i - 1][j - 1] + s[i - 1][j + 1] + s[i + 1][j - 1] + s[i + 1][j + 1]) / 4
+            if (output[i][j] == [0, 0, 0]).all():
+                output[i][j] = (output[i - 1][j - 1] + output[i - 1][j + 1] + output[i + 1][j - 1] + output[i + 1][j + 1]) / 4
 
-    return s.astype(x)
+    return output.astype(type_img)
