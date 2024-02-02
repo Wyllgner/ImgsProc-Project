@@ -151,6 +151,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
         funcao = new Funcoes("Zoom out na imagem", 17);
         this.listaFuncoes.add(funcao);
+
+        funcao = new Funcoes("Aguçamento", 18);
+        this.listaFuncoes.add(funcao);
     }
 
 
