@@ -1,8 +1,5 @@
 package com.example.customizaesdeimagens.activity.activity;
 
-import static com.example.customizaesdeimagens.activity.model.Funcoes.getFuncoesParametro;
-import static com.example.customizaesdeimagens.activity.model.Funcoes.processarImagemSelecionada;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -25,6 +22,7 @@ public class MainActivity2 extends AppCompatActivity {
 
     private ImageView imageView;
     private static final int PICK_IMAGE_REQUEST = 1;
+    private Funcoes funcoes;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -36,7 +34,13 @@ public class MainActivity2 extends AppCompatActivity {
         Button btnSelectImage = findViewById(R.id.btnSelectImage);
         Button btnProcessImage = findViewById(R.id.btnProcessImage);
 
-        // Botão para selecionar a imagem da galeria
+        Intent intent = getIntent();
+        if (intent != null) {
+            int position = intent.getIntExtra("POSITION", -1);
+            if (position != -1) {
+                funcoes = new Funcoes("titulo", position);
+            }
+        }
         btnSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -44,34 +48,30 @@ public class MainActivity2 extends AppCompatActivity {
             }
         });
 
-        // Botão para processar a imagem
         btnProcessImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Obtenha o bitmap da imagem exibida no ImageView
                 Bitmap imagemBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-                processarImagemSelecionada(imagemBitmap);
+                funcoes.processarImagemSelecionada(imagemBitmap);  // Alteração nesta linha
             }
         });
     }
 
-    // Método para abrir a galeria
     private void abrirGaleria() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
 
-    // Método chamado quando a imagem é selecionada da galeria
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            // Obter o URI da imagem selecionada
             try {
                 Bitmap imagemBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
-                // Exibir a imagem selecionada
+                // Exibir
                 imageView.setImageBitmap(imagemBitmap);
             } catch (IOException e) {
                 e.printStackTrace();

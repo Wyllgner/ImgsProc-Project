@@ -1,123 +1,127 @@
-package com.example.customizaesdeimagens.activity.model;
+    package com.example.customizaesdeimagens.activity.model;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.os.AsyncTask;
-import android.provider.MediaStore;
-import android.util.Base64;
-import android.util.Log;
+    import android.app.Activity;
+    import android.content.Intent;
+    import android.graphics.Bitmap;
+    import android.os.AsyncTask;
+    import android.provider.MediaStore;
+    import android.util.Base64;
+    import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+    import java.io.ByteArrayOutputStream;
+    import java.io.DataOutputStream;
+    import java.io.InputStream;
+    import java.net.HttpURLConnection;
+    import java.net.URL;
 
-public class Funcoes {
-    private String tituloFuncao;
-    private static int position;
-    public static final int PICK_IMAGE_REQUEST = 1; // Código de solicitação para a seleção de imagem
+    public class Funcoes {
+        private String tituloFuncao;
+        private int position;
 
-    public Funcoes() {
-    }
+        public static final int PICK_IMAGE_REQUEST = 1;
 
-    public Funcoes(String tituloFuncao, int position) {
-        this.tituloFuncao = tituloFuncao;
-        Funcoes.position = position;
-    }
+        public Funcoes() {
+        }
 
-    public String getTituloFuncao() {
-        return tituloFuncao;
-    }
+        public Funcoes(String tituloFuncao, int position) {
+            this.tituloFuncao = tituloFuncao;
+            this.position = position;
+        }
 
-    public void setTituloFuncao(String tituloFuncao) {
-        this.tituloFuncao = tituloFuncao;
-    }
+        public String getTituloFuncao() {
+            return tituloFuncao;
+        }
 
-    public static int getPosition() {
-        return position;
-    }
+        public void setTituloFuncao(String tituloFuncao) {
+            this.tituloFuncao = tituloFuncao;
+        }
 
-    public void setPosition(int position) {
-        Funcoes.position = position;
-    }
+        public int getPosition() {
+            return position;
+        }
 
-    public static void getFuncoesParametro(Activity activity) {
-        //if (getPosition() == 0) {
-        // Criar uma Intent para a seleção de imagem da galeria
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        intent.setType("image/*");
+        public void setPosition(int position) {
+            this.position = position;
+        }
 
-        // Iniciar a activity de seleção de imagem
-        activity.startActivityForResult(intent, PICK_IMAGE_REQUEST);
-        // }
-    }
+        public void getFuncoesParametro(Activity activity) {
+            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            intent.setType("image/*");
+            activity.startActivityForResult(intent, PICK_IMAGE_REQUEST);
+        }
 
-    public static void processarImagemSelecionada(Bitmap imagemBitmap) {
-        // Converter a imagem para bytes
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        imagemBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-        byte[] byteArray = byteArrayOutputStream.toByteArray();
-        String encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
+        public void processarImagemSelecionada(Bitmap imagemBitmap) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            imagemBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            byte[] byteArray = byteArrayOutputStream.toByteArray();
+            String encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
-        // Enviar a imagem para o servidor Python
-        new EnviarImagemParaServidor().execute(encodedImage);
-    }
+            Log.d("Posição antes do envio:", String.valueOf(this.position));
 
-    // AsyncTask para enviar a imagem para o servidor Python
-    private static class EnviarImagemParaServidor extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... params) {
-            try {
-                String imagemBase64 = params[0];
+            // Enviar a imagem para o servidor Python
+            new EnviarImagemParaServidor(String.valueOf(this.position)).execute(encodedImage, String.valueOf(this.position));
 
-                // Configurar a URL do servidor Python
-                URL url = new URL("http://10.0.2.2:5000/process_image"); // Substitua pelo IP do seu servidor
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=*****");
-                connection.setDoOutput(true);
+        }
 
-                // Construir o corpo da solicitação
-                DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
-                String boundary = "*****";
-                String lineEnd = "\r\n";
+        private static class EnviarImagemParaServidor extends AsyncTask<String, Void, String> {
+            private int position;
+            public EnviarImagemParaServidor(String position) {
+                this.position = Integer.parseInt(position);
+            }
 
-                outputStream.writeBytes("--" + boundary + lineEnd);
-                outputStream.writeBytes("Content-Disposition: form-data; name=\"image\"; filename=\"image.jpg\"" + lineEnd);
-                outputStream.writeBytes("Content-Type: image/jpeg" + lineEnd);
-                outputStream.writeBytes(lineEnd);
-                outputStream.write(Base64.decode(imagemBase64, Base64.DEFAULT));
-                outputStream.writeBytes(lineEnd);
-                outputStream.writeBytes("--" + boundary + "--" + lineEnd);
+            @Override
+            protected String doInBackground(String... params) {
+                try {
+                    String imagemBase64 = params[0];
+                    String position = params[1];  // Obter a posição do segundo parâmetro
 
-                outputStream.flush();
-                outputStream.close();
+                    URL url = new URL("http://10.0.2.2:5000/process_image");
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=*");
+                    connection.setDoOutput(true);
 
-                // Obter a resposta do servidor
-                int responseCode = connection.getResponseCode();
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    // Ler a resposta do servidor
-                    InputStream in = connection.getInputStream();
-                    // Processar a resposta conforme necessário
-                    // ...
+                    DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
+                    String boundary = "*";
+                    String lineEnd = "\r\n";
 
-                    // Retornar uma mensagem de sucesso ou a resposta do servidor (dependendo do seu caso)
-                    return "Sucesso";
-                } else {
-                    return "Erro: " + responseCode;
+                    outputStream.writeBytes("--" + boundary + lineEnd);
+                    outputStream.writeBytes("Content-Disposition: form-data; name=\"image\"; filename=\"image.jpg\"" + lineEnd);
+                    outputStream.writeBytes("Content-Type: image/jpeg" + lineEnd);
+                    outputStream.writeBytes(lineEnd);
+                    outputStream.write(Base64.decode(imagemBase64, Base64.DEFAULT));
+                    outputStream.writeBytes(lineEnd);
+                    outputStream.writeBytes("--" + boundary + lineEnd);
+
+                    // Adicionar a posição ao corpo da solicitação
+                    outputStream.writeBytes("Content-Disposition: form-data; name=\"position\"" + lineEnd);
+                    outputStream.writeBytes(lineEnd);
+                    outputStream.writeBytes(position);
+                    outputStream.writeBytes(lineEnd);
+                    outputStream.writeBytes("--" + boundary + "--" + lineEnd);
+
+                    outputStream.flush();
+                    outputStream.close();
+
+                    int responseCode = connection.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        InputStream in = connection.getInputStream();
+                        // Processar a resposta conforme necessário
+                        // ...
+
+                        return "Sucesso";
+                    } else {
+                        return "Erro: " + responseCode;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return "Erro: " + e.getMessage();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "Erro: " + e.getMessage();
+            }
+
+            @Override
+            protected void onPostExecute(String result) {
+                Log.d("Resultado do servidor", result);
             }
         }
-
-        @Override
-        protected void onPostExecute(String result) {
-            // Manipular o resultado conforme necessário
-            Log.d("Resultado do servidor", result);
-        }
     }
-}
