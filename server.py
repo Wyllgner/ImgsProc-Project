@@ -65,6 +65,8 @@ def process_image():
             processed_image = zoom_in_image(original_image, zoom_factor=2)
         elif position == 17:
             processed_image = zoom_out_image(original_image, zoom_factor=0.5)
+        elif position == 18;
+            processed_image = laplacian_sharpening(f,t=10, k=1)
         else:
             # Trate outros casos conforme necessário
             processed_image = default_processing(original_image)
@@ -520,6 +522,29 @@ def zoom_out_image(f, zoom_factor):
 
     return output.astype(type_img)
 
+def laplacian_sharpening(f, t, k):
+    f = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
+    row, col = f.shape
+    type_img = f.dtype
+
+    output = np.zeros((row, col), dtype=f.dtype)
+
+    g = np.zeros((row, col), dtype=f.dtype)
+
+    for i in range(1, row - 1):
+        for j in range(1, col - 1):
+            g[i - 1, j - 1] = f[i + 1, j] + f[i - 1, j] + f[i, j + 1] + f[i, j - 1] - 4 * f[i, j]
+
+    for i in range(row):
+        for j in range(col):
+            if g[i, j] <= t:
+                g[i, j] = 0
+
+    for i in range(row):
+        for j in range(col):
+            output[i, j] = f[i, j] + g[i, j]
+
+    return output.astype(type_img)
 if __name__ == '__main__':
     app.debug = True
     app.run(host='0.0.0.0', port=5000)
